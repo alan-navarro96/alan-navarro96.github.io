@@ -1,1 +1,1 @@
-# alan-navarro96.github.io
+I created this repository to show the projects I've worked on. This is my portfolio. 
