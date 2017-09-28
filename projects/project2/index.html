@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+ <title>Entendiendo z-buffering</title>
+
+
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+
+<link rel="stylesheet" href="/css/bootstrap.min.css">
+<link rel="stylesheet" id="ct-tracks-google-fonts-css" href="//fonts.googleapis.com/css?family=Raleway%3A400%2C700&amp;subset=latin%2Clatin-ext&amp;ver=4.7.2" type="text/css" media="all">
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+<link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+<link href="/css/custom.css" rel="stylesheet">
+<link rel="shortcut icon" href="/img/favicon.png">
+
+
+</head>
+  <body>
+    <div id="root">
+      <div class="container-fluid">
+        <div class="row site-header">
+          <div class="col-md-12">
+            <div class="row">
+              <div class="col-md-12 top-navigation">
+                <div class="row">
+  <div class="col-sm-6">
+    <div class="categories-block">
+      <a href="/" class="track-categories">Home</a>
+      <a href="/about" class="track-categories">About me</a>
+      
+    </div>
+  </div>
+
+  <div class="col-sm-6">
+    <div class="social-media-block">
+
+      
+      
+      
+      
+      
+      
+      
+      
+
+    </div>
+  </div>
+</div>
+
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-10 header col-md-offset-1">
+                <div class="row">
+  <div class="col-md-6">
+    <div class="title-info">
+      
+      <a href=""> Alan Navarro&#39;s portfolio </a>
+      
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="menu">
+    </div>
+  </div>
+
+</div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10 main-content col-md-offset-1">
+            
+
+<div class="col-md-12 entry">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="entry-meta">
+        September 17
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="entry-header">
+       Entendiendo z-buffering
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-2">
+      <div class="entry-sidebar">
+        <div class="entry-sidebar-title">CATEGORIES</div>
+        
+
+        <div class="entry-sidebar-title">Tags</div>
+        
+      </div>
+    </div>
+    <div class="col-md-10">
+      <div class="entry-content">
+        <p>Mi motivación detrás de este artículo es dar un breve resumen del algoritmo de procesamiento de imagen conocido como z-buffering en español. Dar a entender cómo funciona y en qué aspectos es posible mejorarlo.
+</p>
+
+<p>Z-buffering es una solución al problema de visibilidad, que es el problema de decidir qué elementos de una escena renderizada son visibles y que están ocultos. Además de este tipo de solución, se encuentran otras como: el algoritmo del pintor, uso de C-Buffer y S-Buffer, Lista de bordes activos ordenados, Particionamiento en espacio binario, Ray tracing, entre otros.</p>
+
+<p>Cuando un objeto es dibujado por una tarjeta gráfica 3D, una descripción de como Z-buffering trabaja es la siguiente:</p>
+
+<ol>
+<li><p>Se almacena la profundidad del píxel generado (coordenada z) en un buffer de datos (el z-buffer).</p></li>
+
+<li><p>Este buffer se distribuye como un array de 2 dimensiones (x, y) con un elemento por cada pixel de la pantalla.</p></li>
+
+<li><p>Si algún otro objeto de la escena se tiene que renderizar en el mismo píxel:  la tarjeta gráfica o el software que ejecuta z-buffering compara las dos profundidades y elige el más cercano al observador.</p></li>
+
+<li><p>La profundidad elegida es entonces salvada en el z-buffer.</p></li>
+
+<li><p>El z-buffer permitirá a la tarjeta gráfica reproducir correctamente la percepción de la profundidad normal.</p></li>
+</ol>
+
+<p>La Z-Culling es la eliminación temprana de un píxel basada en la profundidad, un método que provee un incremento en el rendimiento cuando la renderización de superficies ocultas es costosa. Es una consecuencia directa del Z-buffering, donde la profundidad de cada píxel candidato es comparada con la profundidad de la geometría existente detrás de la cual puede estar oculto.</p>
+
+<p>Hablamos un poco más del algoritmo de z-buffering como tal, podemos encontrar la siguiente implementación:</p>
+
+<p><b>Algoritmo de Z-buffer</b>:</p>
+
+<p><b>Entrada</b>: Una lista de polígonos {P1,P2,&hellip;..Pn}</p>
+
+<p><b>Salida</b>: Una matriz COLOR, que muestra la intensidad de las superficies de polígonos visibles.</p>
+
+<p>Inicializa:</p>
+
+<pre><code>            z-buffer(x,y)=maxima profundidad; 
+
+            COLOR(x,y) = color de fondo.
+</code></pre>
+
+<p>Inicio:</p>
+
+<pre><code> para(cada polígono P en la lista de polígonos) hacer {
+
+     Para (cada pixel(x,y) que intersecta P) hacer {
+
+         Calcular z-depth de P en el punto (x,y)
+
+         Si (z-depth &lt; z-buffer[x,y]) entonces {
+
+              Z-buffer[x,y] = z-depth;
+
+              COLOR(x,y) = Intensidad de P en el punto (x,y);
+
+        }
+
+     }
+
+  }
+</code></pre>
+
+<p>Retornar la matriz COLOR.</p>
+
+<p>Y se calcula z-depth para un polígono P en el punto (x, y) de la siguiente manera:</p>
+
+<p><img src="/img/portfolio/z-depth.svg" alt="z-depth" />
+<img src="/img/portfolio/z-depth.svg"></p>
+
+<p>Donde:</p>
+
+<p><i>Far</i>: Es la máxima distancia que se alcanza a ver en la cámara.</p>
+
+<p><i>Near</i>: Es la mínima distancia que se alcanza a ver en la cámara.</p>
+
+<p><b>Alternativas a z-buffering:</b></p>
+
+<p>Como se mencionó antes existen bastantes algoritmos que resuelven el mismo problema que Z-buffering, como el algoritmo del pintor, uso de C-Buffer y S-Buffer, Lista de bordes activos ordenados, Particionamiento en espacio binario, Ray tracing, entre otros. Sin embargo, el más utilizado es z-buffering o una variante de este conocida como w-buffering.</p>
+
+<p>En el algoritmo w-buffering, se utiliza el mismo proceso que en el de z-buffering pero los valores de z-depth se almacenan en formato de coma flotante. Por ejemplo:
+<img src="/img/portfolio/floating-point.svg" alt="floating-point" />
+<img src="/img/portfolio/floating-point.svg"></p>
+
+<p>Por lo que es necesario hacer un proceso de interpolación para guardarlos.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+  
+
+</div>
+
+          </div>
+        </div>
+        <div class="row site-footer">
+          <div class="col-md-12">
+            <div class="row">
+  <div class="col-md-12 footer-title">
+    <h2>
+      
+      <a href=""> Alan Navarro&#39;s portfolio </a>
+      
+    </h2>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12 footer-menu">
+    <p class="row content-summary"> 
+      © 2017 Alan Navarro <br>
+      Powered by Hugo
+    </p>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <div class="social-media-block-footer">
+      
+      
+      
+      
+      
+      
+      
+      
+
+    </div>
+  </div>
+</div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.cookie.js"> </script>
+<script src="/js/ekko-lightbox.js"></script>
+<script src="/js/jquery.scrollTo.min.js"></script>
+<script src="/js/masonry.pkgd.min.js"></script>
+<script src="/js/imagesloaded.pkgd.min.js"></script>
+<script src="/js/owl.carousel.min.js"></script>
+<script src="/js/front.js"></script>
+
+  </body>
+</html>
